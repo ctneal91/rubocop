@@ -1,88 +1,85 @@
-# This is the configuration used to check the rubocop source code.
+# These are the BHIP changes to the regular Rubocop style checks
 
-inherit_from: .rubocop_todo.yml
-require:
-  - rubocop/cop/internal_affairs
-  - rubocop-rspec
+# inherit_from: .rubocop_todo.yml
 
 AllCops:
+  DisplayCopNames: true
   Exclude:
     - 'vendor/**/*'
     - 'spec/fixtures/**/*'
     - 'tmp/**/*'
-  TargetRubyVersion: 2.1
+  TargetRubyVersion: 2.4
 
-Naming/PredicateName:
-  # Method define macros for dynamically generated method.
-  MethodDefinitionMacros:
-    - define_method
-    - define_singleton_method
-    - def_node_matcher
-    - def_node_search
+# Four space indentation provides more consistency across different development 
+# environments as well as curb the amount intermixed tabs and spaces. 
+# Additionally it is also more readable than using 2 spaces at each indentation.
+Layout/IndentationWidth:
+  Width: 4
 
-Style/FrozenStringLiteralComment:
-  EnforcedStyle: always
-
-Style/FormatStringToken:
-  # Because we parse a lot of source codes from strings. Percent arrays
-  # look like unannotated format string tokens to this cop.
-  Exclude:
-    - spec/**/*
-
-Layout/EndOfLine:
-  EnforcedStyle: lf
-
-Layout/ClassStructure:
-  Enabled: true
-  Categories:
-    module_inclusion:
-      - include
-      - prepend
-      - extend
-  ExpectedOrder:
-      - module_inclusion
-      - constants
-      - public_class_methods
-      - initializer
-      - instance_methods
-      - protected_methods
-      - private_methods
-
-Layout/IndentHeredoc:
-  EnforcedStyle: powerpack
-
-Lint/AmbiguousBlockAssociation:
-  Exclude:
-    - 'spec/**/*.rb'
-
-Lint/InterpolationCheck:
-  Exclude:
-    - 'spec/**/*.rb'
-
-Lint/UselessAccessModifier:
-  MethodCreatingMethods:
-    - 'def_matcher'
-    - 'def_node_matcher'
-
-Lint/BooleanSymbol:
-  Enabled: false
+# While many things we do are inherently more complex than usual, we should try 
+# to minimize it in order so that other programmers can make relatively quick
+# changes while having low risk of braking the code.
+Metrics/AbcSize:
+  Max: 25
+  # Exclude:
 
 Metrics/BlockLength:
+  Max: 200
+
+Metrics/ClassLength:
+  Max: 300
+
+# Once again despite the inherent complexity of the work we do we should aim to
+# minimize needless looping that is harder to understand.
+Metrics/CyclomaticComplexity: 
+  Max: 6
+  # Exclude:
+
+# We should aim to stay under 80 characters per line; however, we are using four
+# spaces for indentation and are likely to have a fair amount of nesting.
+# Consequently lines may go longer than 80 but not more than 120. 
+Metrics/LineLength:
+  Max: 120
+  # Exclude:
+
+# Having nice short code is preferable since it encourages writing idiomatic
+# Ruby, avoids duplicating code and is easier to refactor. Despite this, clarity
+# is our main concern. So make methods longer if makes them more comprehensible.
+Metrics/MethodLength: 
+  Max: 20
   Exclude:
-    - 'Rakefile'
-    - '**/*.rake'
-    - 'spec/**/*.rb'
+    - 'db/migrate'
 
-Metrics/ModuleLength:
-  Exclude:
-    - 'spec/**/*.rb'
+# Yet again, avoid needless complexity. 
+Metrics/PerceivedComplexity:
+  Max: 10
+  # Exclude:
 
-Performance/Caller:
-  Exclude:
-    - spec/rubocop/cop/performance/caller_spec.rb
+# While the compact style of children definition for classes/modules can create
+# a bit of ambiguity, this is rare and the compact style is easier to understand
+# quickly and takes up less room. 
+Style/ClassAndModuleChildren:
+  Enabled: false
 
-RSpec/PredicateMatcher:
-  EnforcedStyle: explicit
+# The preformance gain from frozen string literals is offset by the comment
+# being in all the code, and once Ruby 3 comes out we'll get the upgrade anyway
+# since that will be the default. 
+Style/FrozenStringLiteralComment:
+  Enabled: false
 
-RSpec/NestedGroups:
-  Max: 7
+# Despite the fact that predicate methods may be easier to read, for simple 
+# ones (e.g. comparing to 0, 1) should be written in a comparison format since 
+# it allows for easier changes and has the additional benefit of being nil safe.
+# But for anything complex (i.e. x > 0 && x < 5) the predicate format should be
+# used (i.e. x.between?(0, 5) ).
+Style/NumericPredicate:
+  EnforcedStyle: comparison
+
+# While %w is a more efficient/legible way to define an array of strings, the 
+# strings we use don't usually directly relate to each other. So this is not 
+# enforced until the array is larger than five items.
+Style/WordArray:
+  EnforcedStyle: percent
+  MinSize: 6
+
+# $ rubocop --fail-level E
